@@ -6,7 +6,7 @@
 int SCREEN_WIDTH;
 int SCREEN_HEIGHT;
 float ELAPSED;
-float EPSILON = 0.001;
+float EPSILON = 0.01;
 
 float numOfnumsOnScreen;
 Vector2 off;

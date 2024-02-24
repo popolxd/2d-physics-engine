@@ -28,9 +28,8 @@ void BODY_CreatePlayer(BODY_Player* player, Vector2* points, int pointsLen, floa
 void BODY_UpdateBody(BODY_Body* body);
 void BODY_UpdatePlayerBody(BODY_Player* player, BODY_Body* bodies);
 
-void BODY_ResolveCollisionWithWall(BODY_Body* body);
-
 float BODY_CheckCollision(BODY_Body* body1, BODY_Body* body2, Vector2* body1pointsBefore, Vector2* body2PointsBefore, Vector2* pointOfIntersection, Vector2* normal);
 void BODY_MoveAllAndResolveAllCollisions(BODY_Player* player, BODY_Body* bodies, int bodiesLen);
 void BODY_ResolveCollision(BODY_Body* body1, BODY_Body* body2, Vector2 pointOfIntersection, Vector2 normal, float time, float elasticity);
+void BODY_CheckAndResolveWallCollision(BODY_Body* body, Vector2* bodyPointsBefore, float elasticity);
 #endif

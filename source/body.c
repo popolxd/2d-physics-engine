@@ -98,31 +98,21 @@ void BODY_UpdatePlayerBody(BODY_Player* player, BODY_Body* bodies)
     POLYGON_RotatePolygon(&player->body.polygon, player->body.angularVel);
 }
 
-void BODY_ResolveCollisionWithWall(BODY_Body* body) // primitivne zatial
-{
-    int collision = 0;
-    for (int i = 0; i < body->polygon.pointsLen; i++) {
-        
-        if (body->polygon.points[i].x <= 0 || body->polygon.points[i].x >= SCREEN_WIDTH) {
-            body->vel.x = -body->vel.x;
-            body->angularVel = -body->angularVel;
-            collision = 1;
-        }
-        if (body->polygon.points[i].y <= 0 || body->polygon.points[i].y >= SCREEN_HEIGHT) {
-            body->vel.y = -body->vel.y;
-            body->angularVel = -body->angularVel;
-            collision = 1;
-        }
-        if (collision) break;
-    }
-}
-
 float BODY_CheckCollision(BODY_Body* body1, BODY_Body* body2, Vector2* body1PointsBefore, Vector2* body2PointsBefore, Vector2* pointOfIntersection, Vector2* normal)
 {
+    Vector2 linePosBefore[2];
+    Vector2 linePosNow[2];
+
     for (int j = 0; j < body1->polygon.pointsLen; j++) { // body1 pointy
         for (int k = 0; k < body2->polygon.pointsLen - 1; k++) {
 
-            float time = POLYGON_CheckPointLineIntersection(body1PointsBefore[j], body1->polygon.points[j], body2PointsBefore[k], body2PointsBefore[k + 1], body2->polygon.points[k], body2->polygon.points[k + 1]);
+            // double time = POLYGON_CheckPointLineIntersection(body1PointsBefore[j], body1->polygon.points[j], body2PointsBefore[k], body2PointsBefore[k + 1], body2->polygon.points[k], body2->polygon.points[k + 1]);
+            linePosBefore[0] = body2PointsBefore[k];
+            linePosBefore[1] = body2PointsBefore[k + 1];
+            linePosNow[0] = body2->polygon.points[k];
+            linePosNow[1] = body2->polygon.points[k + 1];
+            double time = POLYGON_CheckPointLineIntersection(body1->polygon.points[j], linePosNow, body1PointsBefore[j], linePosBefore);
+
             if (time >= 0 && time <= 1) {
                 *pointOfIntersection = (Vector2){body1PointsBefore[j].x + time*(body1->polygon.points[j].x - body1PointsBefore[j].x), body1PointsBefore[j].y + time*(body1->polygon.points[j].y - body1PointsBefore[j].y)};
                 *normal = BODY_GetNormal((Vector2){
@@ -133,7 +123,13 @@ float BODY_CheckCollision(BODY_Body* body1, BODY_Body* body2, Vector2* body1Poin
             }
         }
 
-        float time = POLYGON_CheckPointLineIntersection(body1PointsBefore[j], body1->polygon.points[j], body2PointsBefore[body2->polygon.pointsLen - 1], body2PointsBefore[0], body2->polygon.points[body2->polygon.pointsLen - 1], body2->polygon.points[0]);
+        // float time = POLYGON_CheckPointLineIntersection(body1PointsBefore[j], body1->polygon.points[j], body2PointsBefore[body2->polygon.pointsLen - 1], body2PointsBefore[0], body2->polygon.points[body2->polygon.pointsLen - 1], body2->polygon.points[0]);
+        linePosBefore[0] = body2PointsBefore[body2->polygon.pointsLen - 1];
+        linePosBefore[1] = body2PointsBefore[0];
+        linePosNow[0] = body2->polygon.points[body2->polygon.pointsLen - 1];
+        linePosNow[1] = body2->polygon.points[0];
+        double time = POLYGON_CheckPointLineIntersection(body1->polygon.points[j], linePosNow, body1PointsBefore[j], linePosBefore);
+
         if (time >= 0 && time <= 1) {
             *pointOfIntersection = (Vector2){body1PointsBefore[j].x + time*(body1->polygon.points[j].x - body1PointsBefore[j].x), body1PointsBefore[j].y + time*(body1->polygon.points[j].y - body1PointsBefore[j].y)};
             *normal = BODY_GetNormal((Vector2){
@@ -147,7 +143,13 @@ float BODY_CheckCollision(BODY_Body* body1, BODY_Body* body2, Vector2* body1Poin
     for (int j = 0; j < body2->polygon.pointsLen; j++) { // body2 pointy
         for (int k = 0; k < body1->polygon.pointsLen - 1; k++) {
 
-            float time = POLYGON_CheckPointLineIntersection(body2PointsBefore[j], body2->polygon.points[j], body1PointsBefore[k], body1PointsBefore[k + 1], body1->polygon.points[k], body1->polygon.points[k + 1]);
+            // float time = POLYGON_CheckPointLineIntersection(body2PointsBefore[j], body2->polygon.points[j], body1PointsBefore[k], body1PointsBefore[k + 1], body1->polygon.points[k], body1->polygon.points[k + 1]);
+            linePosBefore[0] = body1PointsBefore[k];
+            linePosBefore[1] = body1PointsBefore[k + 1];
+            linePosNow[0] = body1->polygon.points[k];
+            linePosNow[1] = body1->polygon.points[k + 1];
+            double time = POLYGON_CheckPointLineIntersection(body2->polygon.points[j], linePosNow, body2PointsBefore[j], linePosBefore);
+            
             if (time >= 0 && time <= 1) {
                 *pointOfIntersection = (Vector2){body2PointsBefore[j].x + time*(body2->polygon.points[j].x - body2PointsBefore[j].x), body2PointsBefore[j].y + time*(body2->polygon.points[j].y - body2PointsBefore[j].y)};
                 *normal = BODY_GetNormal((Vector2){
@@ -158,7 +160,13 @@ float BODY_CheckCollision(BODY_Body* body1, BODY_Body* body2, Vector2* body1Poin
             }
         }
 
-        float time = POLYGON_CheckPointLineIntersection(body2PointsBefore[j], body2->polygon.points[j], body1PointsBefore[body1->polygon.pointsLen - 1], body1PointsBefore[0], body1->polygon.points[body1->polygon.pointsLen - 1], body1->polygon.points[0]);
+        // float time = POLYGON_CheckPointLineIntersection(body2PointsBefore[j], body2->polygon.points[j], body1PointsBefore[body1->polygon.pointsLen - 1], body1PointsBefore[0], body1->polygon.points[body1->polygon.pointsLen - 1], body1->polygon.points[0]);
+        linePosBefore[0] = body1PointsBefore[body1->polygon.pointsLen - 1];
+        linePosBefore[1] = body1PointsBefore[0];
+        linePosNow[0] = body1->polygon.points[body1->polygon.pointsLen - 1];
+        linePosNow[1] = body1->polygon.points[0];
+        double time = POLYGON_CheckPointLineIntersection(body2->polygon.points[j], linePosNow, body2PointsBefore[j], linePosBefore);
+        
         if (time >= 0 && time <= 1) {
             *pointOfIntersection = (Vector2){body2PointsBefore[j].x + time*(body2->polygon.points[j].x - body2PointsBefore[j].x), body2PointsBefore[j].y + time*(body2->polygon.points[j].y - body2PointsBefore[j].y)};
             *normal = BODY_GetNormal((Vector2){
@@ -196,12 +204,11 @@ void BODY_MoveAllAndResolveAllCollisions(BODY_Player* player, BODY_Body* bodies,
     for (int i = 0; i < bodiesLen; i++) { // zatial iba pre playera checkujem
         float time = BODY_CheckCollision(&player->body, &bodies[i], playerPointsBefore, bodiesPointsBefore[i], &pointOfIntersection, &normal);
         if (time >= 0 && time <= 1) {
-            // printf("collision! %d\n", GetRandomValue(0, 100));
             BODY_ResolveCollision(&player->body, &bodies[i], pointOfIntersection, normal, time, 1);
         }
-        BODY_ResolveCollisionWithWall(&bodies[i]);
+        BODY_CheckAndResolveWallCollision(&bodies[i], bodiesPointsBefore[i], 1);
     }
-    BODY_ResolveCollisionWithWall(&player->body);
+    BODY_CheckAndResolveWallCollision(&player->body, playerPointsBefore, 1);
 
     // free bullshit
     for (int i = 0; i < bodiesLen; i++) {
@@ -218,6 +225,11 @@ void BODY_ResolveCollision(BODY_Body* body1, BODY_Body* body2, Vector2 pointOfIn
 
     POLYGON_MovePolygon(&body2->polygon, (Vector2){-body2->vel.x * (1 - time + EPSILON), -body2->vel.y * (1 - time + EPSILON)});
     POLYGON_RotatePolygon(&body2->polygon, -body2->angularVel * (1 - time + EPSILON));
+    // POLYGON_MovePolygon(&body1->polygon, (Vector2){-body1->vel.x, -body1->vel.y});
+    // POLYGON_RotatePolygon(&body1->polygon, -body1->angularVel);
+
+    // POLYGON_MovePolygon(&body2->polygon, (Vector2){-body2->vel.x, -body2->vel.y});
+    // POLYGON_RotatePolygon(&body2->polygon, -body2->angularVel);
 
     // get important variables
     Vector2 ra = (Vector2){pointOfIntersection.x - body1->polygon.centerOfMass.x, pointOfIntersection.y - body1->polygon.centerOfMass.y}; // vector from center to point of collision
@@ -240,4 +252,76 @@ void BODY_ResolveCollision(BODY_Body* body1, BODY_Body* body2, Vector2 pointOfIn
     body2->vel.x -= j*normal.x / body2->mass;
     body2->vel.y -= j*normal.y / body2->mass;
     body2->angularVel -= j*ra_nb_crossprod / body2->momentOfInertia;
+}
+
+void BODY_CheckAndResolveWallCollision(BODY_Body* body, Vector2* bodyPointsBefore, float elasticity)
+{
+    // check for collisions
+    double finalTime = INFINITY;
+    double time;
+    Vector2 linePos[2];
+    Vector2 normal, pointOfIntersection;
+
+    for (int i = 0; i < body->polygon.pointsLen; i++) {
+        linePos[0] = (Vector2){0, 0}; // top wall
+        linePos[1] = (Vector2){SCREEN_WIDTH, 0};
+        time = POLYGON_CheckPointLineIntersection(body->polygon.points[i], linePos, bodyPointsBefore[i], linePos);
+        if (time >= 0 && time <= 1) {
+            pointOfIntersection = (Vector2){bodyPointsBefore[i].x + (body->polygon.points[i].x - bodyPointsBefore[i].x)*time, bodyPointsBefore[i].y + (body->polygon.points[i].y - bodyPointsBefore[i].y)*time};
+            normal = BODY_GetNormal((Vector2){linePos[1].x - linePos[0].x, linePos[1].y - linePos[0].y});
+            finalTime = time;
+            break;
+        }
+
+        linePos[0] = (Vector2){0, SCREEN_HEIGHT}; // bottom wall
+        linePos[1] = (Vector2){SCREEN_WIDTH, SCREEN_HEIGHT};
+        time = POLYGON_CheckPointLineIntersection(body->polygon.points[i], linePos, bodyPointsBefore[i], linePos);
+        if (time >= 0 && time <= 1) {
+            pointOfIntersection = (Vector2){bodyPointsBefore[i].x + (body->polygon.points[i].x - bodyPointsBefore[i].x)*time, bodyPointsBefore[i].y + (body->polygon.points[i].y - bodyPointsBefore[i].y)*time};
+            normal = BODY_GetNormal((Vector2){linePos[1].x - linePos[0].x, linePos[1].y - linePos[0].y});
+            finalTime = time;
+            break;
+        }
+
+        linePos[0] = (Vector2){0, 0}; // left wall
+        linePos[1] = (Vector2){0, SCREEN_HEIGHT};
+        time = POLYGON_CheckPointLineIntersection(body->polygon.points[i], linePos, bodyPointsBefore[i], linePos);
+        if (time >= 0 && time <= 1) {
+            pointOfIntersection = (Vector2){bodyPointsBefore[i].x + (body->polygon.points[i].x - bodyPointsBefore[i].x)*time, bodyPointsBefore[i].y + (body->polygon.points[i].y - bodyPointsBefore[i].y)*time};
+            normal = BODY_GetNormal((Vector2){linePos[1].x - linePos[0].x, linePos[1].y - linePos[0].y});
+            finalTime = time;
+            break;
+        }
+
+        linePos[0] = (Vector2){SCREEN_WIDTH, 0}; // right wall
+        linePos[1] = (Vector2){SCREEN_WIDTH, SCREEN_HEIGHT};
+        time = POLYGON_CheckPointLineIntersection(body->polygon.points[i], linePos, bodyPointsBefore[i], linePos);
+        if (time >= 0 && time <= 1) {
+            pointOfIntersection = (Vector2){bodyPointsBefore[i].x + (body->polygon.points[i].x - bodyPointsBefore[i].x)*time, bodyPointsBefore[i].y + (body->polygon.points[i].y - bodyPointsBefore[i].y)*time};
+            normal = BODY_GetNormal((Vector2){linePos[1].x - linePos[0].x, linePos[1].y - linePos[0].y});
+            finalTime = time;
+            break;
+        }
+
+    }
+
+    if (finalTime != INFINITY) {
+        // rewind a little
+        POLYGON_MovePolygon(&body->polygon, (Vector2){-body->vel.x * (1 - finalTime + EPSILON), -body->vel.y * (1 - finalTime + EPSILON)});
+        POLYGON_RotatePolygon(&body->polygon, -body->angularVel * (1 - finalTime + EPSILON));
+
+        // // get important variables
+        Vector2 r = (Vector2){pointOfIntersection.x - body->polygon.centerOfMass.x, pointOfIntersection.y - body->polygon.centerOfMass.y}; // vector from center to point of collision
+
+        float r_n_crossprod = BODY_CrossProdVec2(r, normal);
+        float v_n_dotprod = BODY_DotProdVec2(body->vel, normal);
+
+        // // impulse magnitute
+        float j = (- 1 - elasticity)*(v_n_dotprod + body->angularVel*r_n_crossprod) / (1/body->mass + pow(r_n_crossprod, 2)/body->momentOfInertia);
+
+        // // apply impulse
+        body->vel.x += j*normal.x / body->mass;
+        body->vel.y += j*normal.y / body->mass;
+        body->angularVel += j*r_n_crossprod / body->momentOfInertia;
+    }
 }
